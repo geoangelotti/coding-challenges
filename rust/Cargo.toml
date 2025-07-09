@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "wheel_of_names",
+    "which"
+]
