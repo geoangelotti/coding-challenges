@@ -23,9 +23,11 @@ fn main() {
         println!("{}", USAGE);
         return;
     }
-    let program = &arguments[1];
-    match get_path(program) {
-        Some(path) => println!("{}", path),
-        None => println!("{} not found in PATH", program),
+    let programs = &arguments[1..];
+    for program in programs {
+        match get_path(program) {
+            Some(path) => println!("{}", path),
+            None => println!("{} not found in PATH", program),
+        }
     }
 }
