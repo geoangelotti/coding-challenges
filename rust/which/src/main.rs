@@ -29,14 +29,20 @@ fn parse_arguments() -> Result<Vec<String>, String> {
     Ok(arguments)
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let arguments = parse_arguments()?;
-    let programs = &arguments[1..];
+fn display(programs: &[String]) {
     for program in programs {
         match get_paths(program.as_str()) {
-            Some(paths) => paths.iter().for_each(|path| println!("{}", path)),
+            Some(paths) => paths
+                .iter()
+                .for_each(|path| println!("{}", path.to_string_lossy())),
             None => println!("{} not found in PATH", program),
         }
     }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let arguments = parse_arguments()?;
+    let programs = &arguments[1..];
+    display(programs);
     Ok(())
 }
