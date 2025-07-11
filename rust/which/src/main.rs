@@ -5,15 +5,12 @@ fn get_seperator() -> char {
 }
 
 fn get_path(program: &String) -> Option<String> {
-    if let Ok(path_variables) = env::var("PATH") {
-        for path in path_variables.split(get_seperator()) {
-            let executable_path = Path::new(path).join(program);
-            if executable_path.exists() {
-                return Some(executable_path.to_string_lossy().to_string());
-            }
-        }
-    };
-    None
+    env::var("PATH")
+        .ok()?
+        .split(get_seperator())
+        .map(|path| Path::new(path).join(program))
+        .find(|path| path.exists())
+        .map(|p| p.to_string_lossy().to_string())
 }
 
 const USAGE: &str = "Usage: which program ...";
