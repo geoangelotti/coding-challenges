@@ -4,13 +4,17 @@ fn get_seperator() -> char {
     if cfg!(windows) { ';' } else { ':' }
 }
 
-fn get_path(program: &String) -> Option<String> {
-    env::var("PATH")
-        .ok()?
-        .split(get_seperator())
-        .map(|path| Path::new(path).join(program))
-        .find(|path| path.exists())
-        .map(|p| p.to_string_lossy().to_string())
+fn get_paths(program: &String) -> Option<Vec<String>> {
+    Some(
+        env::var("PATH")
+            .ok()?
+            .split(get_seperator())
+            .map(|path| Path::new(path).join(program))
+            .filter(|path| path.exists())
+            .map(|p| p.to_string_lossy().to_string())
+            .collect::<Vec<String>>(),
+    )
+    .filter(|v| !v.is_empty())
 }
 
 const USAGE: &str = "Usage: which program ...";
@@ -27,8 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let arguments = parse_arguments()?;
     let programs = &arguments[1..];
     for program in programs {
-        match get_path(program) {
-            Some(path) => println!("{}", path),
+        match get_paths(program) {
+            Some(paths) => paths.iter().for_each(|path| println!("{}", path)),
             None => println!("{} not found in PATH", program),
         }
     }
