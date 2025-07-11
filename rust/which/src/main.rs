@@ -14,12 +14,17 @@ fn get_path(program: &String) -> Option<String> {
 }
 
 const USAGE: &str = "Usage: which program ...";
-fn main() {
+
+fn parse_arguments() -> Result<Vec<String>, String> {
     let arguments: Vec<String> = env::args().collect();
     if arguments.len() < 2 {
-        println!("{}", USAGE);
-        return;
+        return Err(USAGE.to_string());
     }
+    Ok(arguments)
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let arguments = parse_arguments()?;
     let programs = &arguments[1..];
     for program in programs {
         match get_path(program) {
@@ -27,4 +32,5 @@ fn main() {
             None => println!("{} not found in PATH", program),
         }
     }
+    Ok(())
 }
