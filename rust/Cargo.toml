@@ -3,3 +3,6 @@ members = [
     "wheel_of_names",
     "which"
 ]
+
+[workspace.dependencies]
+rand = "0.8.5"
