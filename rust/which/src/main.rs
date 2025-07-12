@@ -48,20 +48,24 @@ fn parse_arguments() -> Result<(bool, bool, Vec<String>), &'static str> {
     Ok((flag_all, flag_silent, programs))
 }
 
-fn display(programs: &[String]) {
+fn iterate(programs: &[String]) {
     for program in programs {
-        match get_paths(program.as_str()) {
-            Some(paths) => paths
-                .iter()
-                .for_each(|path| println!("{}", path.to_string_lossy())),
-            None => println!("{} not found in PATH", program),
-        }
+        display(program, get_paths(program));
+    }
+}
+
+fn display(program: &str, paths: Option<Vec<PathBuf>>) {
+    match paths {
+        Some(paths) => paths
+            .iter()
+            .for_each(|path| println!("{}", path.to_string_lossy())),
+        None => println!("{} not found in PATH", program),
     }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (_, _, arguments) = parse_arguments()?;
     let programs = &arguments[1..];
-    display(programs);
+    iterate(programs);
     Ok(())
 }
