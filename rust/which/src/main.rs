@@ -19,14 +19,33 @@ fn get_paths(program: &str) -> Option<Vec<PathBuf>> {
     .filter(|v| !v.is_empty())
 }
 
-const USAGE: &str = "Usage: which program ...";
+const USAGE: &str = "Usage: which [-as] program ...";
 
-fn parse_arguments() -> Result<Vec<String>, String> {
+fn parse_arguments() -> Result<(bool, bool, Vec<String>), &'static str> {
     let arguments: Vec<String> = env::args().collect();
     if arguments.len() < 2 {
-        return Err(USAGE.to_string());
+        return Err(USAGE);
     }
-    Ok(arguments)
+
+    let mut flag_all = false;
+    let mut flag_silent = false;
+    let mut programs: Vec<String> = Vec::new();
+
+    arguments
+        .iter()
+        .for_each(|argument| match argument.as_str() {
+            "-a" => flag_all = true,
+            "-s" => flag_silent = true,
+            "-as" => {
+                flag_all = true;
+                flag_silent = true;
+            }
+            _ => programs.push(argument.clone()),
+        });
+    if programs.is_empty() {
+        return Err(USAGE);
+    }
+    Ok((flag_all, flag_silent, programs))
 }
 
 fn display(programs: &[String]) {
@@ -41,7 +60,7 @@ fn display(programs: &[String]) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let arguments = parse_arguments()?;
+    let (_, _, arguments) = parse_arguments()?;
     let programs = &arguments[1..];
     display(programs);
     Ok(())
