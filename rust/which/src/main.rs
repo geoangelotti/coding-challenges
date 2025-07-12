@@ -22,25 +22,23 @@ fn get_paths(program: &str) -> Option<Vec<PathBuf>> {
 const USAGE: &str = "Usage: which [-a] program ...";
 
 fn parse_arguments() -> Result<(bool, Vec<String>), &'static str> {
-    let arguments: Vec<String> = env::args().collect();
-    if arguments.len() < 2 {
-        return Err(USAGE);
-    }
-
     let mut flag_all = false;
-    let mut programs: Vec<String> = Vec::new();
+    let programs: Vec<String> = env::args()
+        .skip(1)
+        .filter_map(|arg| match arg.as_str() {
+            "-a" => {
+                flag_all = true;
+                None
+            }
+            _ => Some(arg),
+        })
+        .collect();
 
-    arguments
-        .iter()
-        .for_each(|argument| match argument.as_str() {
-            "-a" => flag_all = true,
-
-            _ => programs.push(argument.clone()),
-        });
     if programs.is_empty() {
-        return Err(USAGE);
+        Err(USAGE)
+    } else {
+        Ok((flag_all, programs))
     }
-    Ok((flag_all, programs))
 }
 
 fn iterate(programs: &[String], flag_all: bool) {
@@ -52,12 +50,10 @@ fn iterate(programs: &[String], flag_all: bool) {
 fn display(program: &str, paths: Option<Vec<PathBuf>>, flag_all: bool) {
     match paths {
         Some(paths) => {
-            let iter: Box<dyn Iterator<Item = &PathBuf>> = if flag_all {
-                Box::new(paths.iter())
-            } else {
-                Box::new(paths.iter().take(1))
-            };
-            iter.for_each(|path| println!("{}", path.to_string_lossy()));
+            let iter = paths.iter().take(if flag_all { paths.len() } else { 1 });
+            for path in iter {
+                println!("{}", path.to_string_lossy());
+            }
         }
         None => println!("{} not found in PATH", program),
     }
@@ -65,7 +61,7 @@ fn display(program: &str, paths: Option<Vec<PathBuf>>, flag_all: bool) {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (flag_all, arguments) = parse_arguments()?;
-    let programs = &arguments[1..];
+    let programs = &arguments[..];
     iterate(programs, flag_all);
     Ok(())
 }
