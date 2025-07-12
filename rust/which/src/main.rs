@@ -21,9 +21,13 @@ fn get_paths(program: &str) -> Option<Vec<PathBuf>> {
 
 const USAGE: &str = "Usage: which [-a] program ...";
 
-fn parse_arguments() -> Result<(bool, Vec<String>), &'static str> {
+fn parse_arguments<I>(args: I) -> Result<(bool, Vec<String>), &'static str>
+where
+    I: IntoIterator<Item = String>,
+{
     let mut flag_all = false;
-    let programs: Vec<String> = env::args()
+    let programs: Vec<String> = args
+        .into_iter()
         .skip(1)
         .filter_map(|arg| match arg.as_str() {
             "-a" => {
@@ -60,7 +64,7 @@ fn display(program: &str, paths: Option<Vec<PathBuf>>, flag_all: bool) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (flag_all, arguments) = parse_arguments()?;
+    let (flag_all, arguments) = parse_arguments(env::args())?;
     let programs = &arguments[..];
     iterate(programs, flag_all);
     Ok(())
