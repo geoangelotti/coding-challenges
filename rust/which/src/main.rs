@@ -69,3 +69,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     iterate(programs, flag_all);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_paths_found() {
+        // 'ls' should exist on most Unix systems
+        #[cfg(not(windows))]
+        assert!(get_paths("ls").is_some());
+
+        // 'cmd' should exist on Windows
+        #[cfg(windows)]
+        assert!(get_paths("cmd").is_some());
+    }
+
+    #[test]
+    fn test_get_paths_not_found() {
+        assert!(get_paths("definitelynotarealprogram").is_none());
+    }
+
+    #[test]
+    fn test_parse_arguments_empty() {
+        let args = vec!["which".to_string()];
+        let result = parse_arguments(args);
+        assert!(result.is_err())
+    }
+
+    #[test]
+    fn test_parse_arguments_without_flag() -> Result<(), Box<dyn std::error::Error>> {
+        let args = vec!["which".to_string(), "ls".to_string()];
+        let result = parse_arguments(args);
+        assert!(result.is_ok());
+        let (flag_all, programs) = result?;
+        assert!(!flag_all);
+        assert_eq!(programs.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_arguments_with_flag() -> Result<(), Box<dyn std::error::Error>> {
+        let args = vec!["which".to_string(), "-a".to_string(), "ls".to_string()];
+        let result = parse_arguments(args);
+        assert!(result.is_ok());
+        let (flag_all, programs) = result?;
+        assert!(flag_all);
+        assert_eq!(programs.len(), 1);
+        Ok(())
+    }
+}
