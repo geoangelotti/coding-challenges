@@ -6,7 +6,8 @@ import { Result, ok, err } from "neverthrow";
 type CliFlag =
   | { type: "Chars"; count: (b: Buffer) => number }
   | { type: "Lines"; count: (b: Buffer) => number }
-  | { type: "Words"; count: (b: Buffer) => number };
+  | { type: "Words"; count: (b: Buffer) => number }
+  | { type: "Locale"; count: (b: Buffer) => number };
 
 const CliFlag = {
   Chars: (): CliFlag => ({
@@ -27,6 +28,14 @@ const CliFlag = {
       return s.split(/\s+/).filter((word) => word.length > 0).length;
     },
   }),
+  Locale: (): CliFlag => ({
+    type: "Locale",
+    count: (b: Buffer) => {
+      const locale = detectEncodingHeuristic(b);
+      const s = b.toString(locale ? locale : undefined);
+      return s.length;
+    },
+  }),
 };
 
 const USAGE = "USAGE: wc -[lmwc] file";
@@ -45,6 +54,9 @@ function parseArguments(args: string[]): Result<[string, CliFlag], string> {
       break;
     case "-w":
       cliFlag = CliFlag.Words();
+      break;
+    case "-m":
+      cliFlag = CliFlag.Locale();
       break;
     default:
       return err(USAGE);
@@ -80,3 +92,32 @@ async function main() {
 }
 
 await main();
+
+function detectEncodingHeuristic(buffer: Buffer): NodeJS.BufferEncoding | null {
+  if (isValidUTF8(buffer)) {
+    return "utf-8";
+  }
+  if (isASCII(buffer)) {
+    return "ascii";
+  }
+
+  return null;
+}
+
+function isValidUTF8(buffer: Buffer): boolean {
+  try {
+    const str = buffer.toString("utf8");
+    return Buffer.from(str, "utf8").equals(buffer);
+  } catch {
+    return false;
+  }
+}
+
+function isASCII(buffer: Buffer): boolean {
+  for (let i = 0; i < buffer.length; i++) {
+    if (buffer[i] > 127) {
+      return false;
+    }
+  }
+  return true;
+}
