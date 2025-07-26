@@ -3,12 +3,21 @@ import { readFile, access } from "fs/promises";
 import { constants } from "fs";
 import { Result, ok, err } from "neverthrow";
 
-type CliFlag = { type: "Chars"; count: (b: Buffer) => number };
+type CliFlag =
+  | { type: "Chars"; count: (b: Buffer) => number }
+  | { type: "Lines"; count: (b: Buffer) => number };
 
 const CliFlag = {
   Chars: (): CliFlag => ({
     type: "Chars",
     count: (b: Buffer) => b.length,
+  }),
+  Lines: (): CliFlag => ({
+    type: "Lines",
+    count: (b: Buffer) => {
+      const s = b.toString("utf-8");
+      return s.split("\n").length;
+    },
   }),
 };
 
@@ -23,7 +32,9 @@ function parseArguments(args: string[]): Result<[string, CliFlag], string> {
     case "-c":
       cliFlag = CliFlag.Chars();
       break;
-
+    case "-l":
+      cliFlag = CliFlag.Lines();
+      break;
     default:
       return err(USAGE);
   }
