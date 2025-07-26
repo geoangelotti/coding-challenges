@@ -54,7 +54,7 @@ async function main() {
   }
   const [path, cliFlag] = argsResult._unsafeUnwrap();
   const buffer = (await read(path))._unsafeUnwrap();
-  console.log(`${CliFlag.Chars().count(buffer)} ${path}`);
+  console.log(`${cliFlag.count(buffer)} ${path}`);
 }
 
 await main();
