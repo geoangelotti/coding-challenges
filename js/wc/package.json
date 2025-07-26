@@ -1,0 +1,17 @@
+{
+  "name": "wc",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node built/index.js",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "neverthrow": "^8.2.0"
+  }
+}
