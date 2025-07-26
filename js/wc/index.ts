@@ -5,7 +5,8 @@ import { Result, ok, err } from "neverthrow";
 
 type CliFlag =
   | { type: "Chars"; count: (b: Buffer) => number }
-  | { type: "Lines"; count: (b: Buffer) => number };
+  | { type: "Lines"; count: (b: Buffer) => number }
+  | { type: "Words"; count: (b: Buffer) => number };
 
 const CliFlag = {
   Chars: (): CliFlag => ({
@@ -17,6 +18,13 @@ const CliFlag = {
     count: (b: Buffer) => {
       const s = b.toString("utf-8");
       return s.split("\n").length;
+    },
+  }),
+  Words: (): CliFlag => ({
+    type: "Words",
+    count: (b: Buffer) => {
+      const s = b.toString("utf-8");
+      return s.split(/\s+/).filter((word) => word.length > 0).length;
     },
   }),
 };
@@ -34,6 +42,9 @@ function parseArguments(args: string[]): Result<[string, CliFlag], string> {
       break;
     case "-l":
       cliFlag = CliFlag.Lines();
+      break;
+    case "-w":
+      cliFlag = CliFlag.Words();
       break;
     default:
       return err(USAGE);
